@@ -10,17 +10,19 @@
 
 include(FindPackageHandleStandardArgs)
 
-set(HFO_ROOT_DIR "" CACHE PATH "Folder containing HFO")
+set(HFO_ROOT_DIR "/root/code/HFO")
+set(HFO_INCLUDE_DIR "/root/code/HFO/src")
+set(HFO_LIBRARY "/root/code/HFO/lib/libhfo.so")
 
-find_path(HFO_INCLUDE_DIR HFO.hpp
-  PATHS ${HFO_ROOT_DIR}
-  PATH_SUFFIXES
-  src)
-
-find_library(HFO_LIBRARY hfo
-  PATHS ${HFO_ROOT_DIR}
-  PATH_SUFFIXES
-  lib)
+# find_path(HFO_INCLUDE_DIR HFO.hpp
+#   PATHS ${HFO_ROOT_DIR}
+#   PATH_SUFFIXES
+#   src)
+# 
+# find_library(HFO_LIBRARY hfo
+#   PATHS ${HFO_ROOT_DIR}
+#   PATH_SUFFIXES
+#   lib)
 
 find_package_handle_standard_args(HFO DEFAULT_MSG
   HFO_INCLUDE_DIR HFO_LIBRARY)

@@ -15,7 +15,7 @@
 using namespace boost::filesystem;
 using namespace hfo;
 
-DEFINE_bool(gpu, true, "Use GPU to brew Caffe");
+DEFINE_bool(gpu, false, "Use GPU to brew Caffe");
 DEFINE_bool(benchmark, false, "Benchmark the network and exit");
 DEFINE_bool(learn_offline, false, "Just do updates on a fixed replaymemory.");
 // Load/Save Args
@@ -243,8 +243,10 @@ void KeepPlayingGames(int tid, std::string save_prefix, int port, int unum) {
   critic_solver_param.set_snapshot_prefix((save_prefix + "_critic").c_str());
   actor_solver_param.set_max_iter(FLAGS_max_iter);
   critic_solver_param.set_max_iter(FLAGS_max_iter);
-  actor_solver_param.set_type(FLAGS_solver);
-  critic_solver_param.set_type(FLAGS_solver);
+  if (FLAGS_solver == "Adam") {
+    actor_solver_param.set_solver_type(caffe::SolverParameter::ADAM);
+    critic_solver_param.set_solver_type(caffe::SolverParameter::ADAM);
+  }
   actor_solver_param.set_base_lr(FLAGS_actor_lr);
   critic_solver_param.set_base_lr(FLAGS_critic_lr);
   actor_solver_param.set_lr_policy(FLAGS_lr_policy);

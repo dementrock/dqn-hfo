@@ -10,17 +10,15 @@
 
 include(FindPackageHandleStandardArgs)
 
-set(CAFFE_ROOT_DIR "" CACHE PATH "Folder containing CAFFE")
+set(CAFFE_ROOT_DIR "/opt/caffe")
 
-find_path(CAFFE_INCLUDE_DIR caffe/caffe.hpp
-  PATHS ${CAFFE_ROOT_DIR}
-  PATH_SUFFIXES
-  include)
+set(CAFFE_INCLUDE_DIR "/opt/caffe/include" "/opt/caffe/build/src" "/opt/caffe/src")
+set(CAFFE_LIBRARY "/opt/caffe/build/lib/libcaffe.so")
 
-find_library(CAFFE_LIBRARY caffe
-  PATHS ${CAFFE_ROOT_DIR}
-  PATH_SUFFIXES
-  build/lib)
+# find_library(CAFFE_LIBRARY caffe
+#   PATHS ${CAFFE_ROOT_DIR}
+#   PATH_SUFFIXES
+#   build/lib)
 
 find_package_handle_standard_args(CAFFE DEFAULT_MSG
   CAFFE_INCLUDE_DIR CAFFE_LIBRARY)

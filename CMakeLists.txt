@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project(dqn)
 
-option(CAFFE_CPU_ONLY "Use CPU only for Caffe" OFF)
+option(CAFFE_CPU_ONLY "Use CPU only for Caffe" ON)
 
 add_executable(dqn dqn_main.cpp dqn.cpp hfo_game.cpp)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -march=native -Wno-deprecated-declarations")

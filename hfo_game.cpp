@@ -38,7 +38,7 @@ void StopHFOServer() {
 void ConnectToServer(hfo::HFOEnvironment& hfo_env, int port, int unum) {
   hfo_env.connectToServer(LOW_LEVEL_FEATURE_SET,
                           FLAGS_config_dir,
-                          unum,
+                          //unum,
                           port,
                           FLAGS_server_addr,
                           FLAGS_team_name,
