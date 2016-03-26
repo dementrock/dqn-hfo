@@ -37,3 +37,4 @@ matplotlibrc
 scripts/HFO
 state/
 build
+*.pyc

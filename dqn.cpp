@@ -21,15 +21,15 @@ using namespace hfo;
 DEFINE_int32(seed, 0, "Seed the RNG. Default: time");
 DEFINE_double(tau, .001, "Step size for soft updates.");
 DEFINE_int32(soft_update_freq, 1, "Do SoftUpdateNet this frequently");
-DEFINE_double(gamma, .99, "Discount factor of future rewards (0,1]");
-DEFINE_int32(memory, 500000, "Capacity of replay memory");
-DEFINE_int32(memory_threshold, 1000, "Number of transitions required to start learning");
+//DEFINE_double(gamma, .99, "Discount factor of future rewards (0,1]");
+//DEFINE_int32(memory, 500000, "Capacity of replay memory");
+//DEFINE_int32(memory_threshold, 1000, "Number of transitions required to start learning");
 DEFINE_int32(loss_display_iter, 1000, "Frequency of loss display");
 DEFINE_int32(snapshot_freq, 10000, "Frequency (steps) snapshots");
 DEFINE_bool(remove_old_snapshots, true, "Remove old snapshots when writing more recent ones.");
 DEFINE_bool(snapshot_memory, false, "Snapshot the replay memory along with the network.");
-DEFINE_bool(use_skills, false, "Uses a hierarchy of skills");
-DEFINE_double(beta_softmax_temp, .5, "Temperature for skill selection softmax.");
+//DEFINE_bool(use_skills, false, "Uses a hierarchy of skills");
+//DEFINE_double(beta_softmax_temp, .5, "Temperature for skill selection softmax.");
 
 template <typename Dtype>
 void HasBlobSize(caffe::Net<Dtype>& net,
@@ -178,50 +178,50 @@ int GetParamOffset(const action_t action, const int arg_num = 0) {
   }
 }
 
-Action DQN::SampleAction(const ActorOutput& actor_output) {
-  float dash_prob = std::max(0., actor_output[DASH] + 1.0);
-  float turn_prob = std::max(0., actor_output[TURN] + 1.0);
-  float tackle_prob = 0; // Remove tackle action
-  float kick_prob = std::max(0., actor_output[KICK] + 1.0);
-  std::discrete_distribution<int> dist { dash_prob, turn_prob, tackle_prob, kick_prob };
-  action_t max_act = (action_t) dist(random_engine);
-  Action action;
-  action.action = max_act;
-  int arg1_offset = GetParamOffset(max_act, 0); CHECK_GE(arg1_offset, 0);
-  action.arg1 = actor_output[kActionSize + arg1_offset];
-  int arg2_offset = GetParamOffset(max_act, 1);
-  action.arg2 = arg2_offset < 0 ? 0 : actor_output[kActionSize + arg2_offset];
-  return action;
-}
+//Action DQN::SampleAction(const ActorOutput& actor_output) {
+//  float dash_prob = std::max(0., actor_output[DASH] + 1.0);
+//  float turn_prob = std::max(0., actor_output[TURN] + 1.0);
+//  float tackle_prob = 0; // Remove tackle action
+//  float kick_prob = std::max(0., actor_output[KICK] + 1.0);
+//  std::discrete_distribution<int> dist { dash_prob, turn_prob, tackle_prob, kick_prob };
+//  action_t max_act = (action_t) dist(random_engine);
+//  Action action;
+//  action.action = max_act;
+//  int arg1_offset = GetParamOffset(max_act, 0); CHECK_GE(arg1_offset, 0);
+//  action.arg1 = actor_output[kActionSize + arg1_offset];
+//  int arg2_offset = GetParamOffset(max_act, 1);
+//  action.arg2 = arg2_offset < 0 ? 0 : actor_output[kActionSize + arg2_offset];
+//  return action;
+//}
+//
+//Action GetAction(const ActorOutput& actor_output) {
+//  ActorOutput copy(actor_output); // TODO: Remove hack
+//  copy[TACKLE] = -99999; // Remove tackle action.
+//  Action action;
+//  action_t max_act = (action_t) std::distance(copy.begin(), std::max_element(
+//      copy.begin(), copy.begin() + kActionSize));
+//  action.action = max_act;
+//  int arg1_offset = GetParamOffset(max_act, 0); CHECK_GE(arg1_offset, 0);
+//  action.arg1 = actor_output[kActionSize + arg1_offset];
+//  int arg2_offset = GetParamOffset(max_act, 1);
+//  action.arg2 = arg2_offset < 0 ? 0 : actor_output[kActionSize + arg2_offset];
+//  return action;
+//}
 
-Action GetAction(const ActorOutput& actor_output) {
-  ActorOutput copy(actor_output); // TODO: Remove hack
-  copy[TACKLE] = -99999; // Remove tackle action.
-  Action action;
-  action_t max_act = (action_t) std::distance(copy.begin(), std::max_element(
-      copy.begin(), copy.begin() + kActionSize));
-  action.action = max_act;
-  int arg1_offset = GetParamOffset(max_act, 0); CHECK_GE(arg1_offset, 0);
-  action.arg1 = actor_output[kActionSize + arg1_offset];
-  int arg2_offset = GetParamOffset(max_act, 1);
-  action.arg2 = arg2_offset < 0 ? 0 : actor_output[kActionSize + arg2_offset];
-  return action;
-}
-
-std::string PrintActorOutput(const ActorOutput& actor_output) {
-  return "Dash(" + std::to_string(actor_output[4]) + ", " + std::to_string(actor_output[5]) + ")="
-      + std::to_string(actor_output[0]) + ", Turn(" + std::to_string(actor_output[6]) + ")="
-      + std::to_string(actor_output[1]) + ", Tackle(" + std::to_string(actor_output[7]) + ")="
-      + std::to_string(actor_output[2]) + ", Kick(" + std::to_string(actor_output[8])
-      + ", " + std::to_string(actor_output[9]) + ")=" + std::to_string(actor_output[3]);
-}
-std::string PrintActorOutput(const float* actions, const float* params) {
-  return "Dash(" + std::to_string(params[0]) + ", " + std::to_string(params[1]) + ")="
-      + std::to_string(actions[0]) + ", Turn(" + std::to_string(params[2]) + ")="
-      + std::to_string(actions[1]) + ", Tackle(" + std::to_string(params[3]) + ")="
-      + std::to_string(actions[2]) + ", Kick(" + std::to_string(params[4])
-      + ", " + std::to_string(params[5]) + ")=" + std::to_string(actions[3]);
-}
+//std::string PrintActorOutput(const ActorOutput& actor_output) {
+//  return "Dash(" + std::to_string(actor_output[4]) + ", " + std::to_string(actor_output[5]) + ")="
+//      + std::to_string(actor_output[0]) + ", Turn(" + std::to_string(actor_output[6]) + ")="
+//      + std::to_string(actor_output[1]) + ", Tackle(" + std::to_string(actor_output[7]) + ")="
+//      + std::to_string(actor_output[2]) + ", Kick(" + std::to_string(actor_output[8])
+//      + ", " + std::to_string(actor_output[9]) + ")=" + std::to_string(actor_output[3]);
+//}
+//std::string PrintActorOutput(const float* actions, const float* params) {
+//  return "Dash(" + std::to_string(params[0]) + ", " + std::to_string(params[1]) + ")="
+//      + std::to_string(actions[0]) + ", Turn(" + std::to_string(params[2]) + ")="
+//      + std::to_string(actions[1]) + ", Tackle(" + std::to_string(params[3]) + ")="
+//      + std::to_string(actions[2]) + ", Kick(" + std::to_string(params[4])
+//      + ", " + std::to_string(params[5]) + ")=" + std::to_string(actions[3]);
+//}
 
 void PopulateLayer(caffe::LayerParameter& layer,
                    const std::string& name, const std::string& type,
@@ -416,97 +416,110 @@ std::string Tower(caffe::NetParameter& np,
   return input_name;
 }
 
-caffe::NetParameter CreateActorNet(int state_size) {
-  caffe::NetParameter np;
-  np.set_name("Actor");
-  np.set_force_backward(true);
-  MemoryDataLayer(np, state_input_layer_name, {states_blob_name,"dummy1"},
-                  boost::none, {kMinibatchSize, kStateInputCount, state_size, 1});
-  SilenceLayer(np, "silence", {"dummy1"}, {}, boost::none);
-  if (FLAGS_use_skills) {
-    // Define two skills and a network for selecting between them
-    std::string sk1_tower = Tower(np, "sk1_", states_blob_name, {1024, 512, 256, 128});
-    IPLayer(np, "sk1_output_layer", {sk1_tower}, {"sk1_out"}, boost::none,
-            kActionSize + kActionParamSize);
-    std::string sk2_tower = Tower(np, "sk2_", states_blob_name, {1024, 512, 256, 128});
-    IPLayer(np, "sk2_output_layer", {sk2_tower}, {"sk2_out"}, boost::none,
-            kActionSize + kActionParamSize);
-    std::string beta_tower = Tower(np, "beta_", states_blob_name, {1024, 512, 256, 128});
-    IPLayer(np, "beta_logits_layers", {beta_tower}, {"beta_logits"}, boost::none, 2);
-    CHECK_GT(FLAGS_beta_softmax_temp, 0) << "Temperature must be in (0, 1]";
-    CHECK_LE(FLAGS_beta_softmax_temp, 1) << "Temperature must be in (0, 1]";
-    float temperature = 1.0 / FLAGS_beta_softmax_temp;
-    DummyDataLayer(np, "dummy_temp", {"temperature"}, boost::none, {{32,2}}, {temperature});
-    EltwiseLayer(np, "eltwise_temp_layer", {"beta_logits", "temperature"}, {"temp_logits"},
-                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
-    SoftmaxLayer(np, "beta_softmax_layer", {"temp_logits"}, {"beta_softmax"}, boost::none, 1);
-    SliceLayer(np, "beta_slice_layer", {"beta_softmax"}, {"sk1_gain", "sk2_gain"}, boost::none,
-               1, {1});
-    // Tile the gains for input into eltwise prod
-    TileLayer(np, "beta_sk0_tile", {"sk1_gain"}, {"sk1_tile"}, boost::none, 1,
-              kActionSize + kActionParamSize);
-    TileLayer(np, "beta_sk1_tile", {"sk2_gain"}, {"sk2_tile"}, boost::none, 1,
-              kActionSize + kActionParamSize);
-    // Eltwise Layers
-    EltwiseLayer(np, "eltwise_sk1_layer", {"sk1_out", "sk1_tile"}, {"sk1_weighted"},
-                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
-    EltwiseLayer(np, "eltwise_sk2_layer", {"sk2_out", "sk2_tile"}, {"sk2_weighted"},
-                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
-    EltwiseLayer(np, "eltwise_sum_layer", {"sk1_weighted", "sk2_weighted"}, {"weighted_output"},
-                 boost::none, caffe::EltwiseParameter_EltwiseOp_SUM);
-    // Slice into actions and params
-    SliceLayer(np, "action_slice_layer", {"weighted_output"},
-               {actions_blob_name, action_params_blob_name}, boost::none, 1, {kActionSize});
-  } else {
-    std::string tower_top = Tower(np, "", states_blob_name, {1024, 512, 256, 128});
-    IPLayer(np, "action_layer", {tower_top}, {"actions"}, boost::none, 4);
-    IPLayer(np, "actionpara_layer", {tower_top}, {"action_params"}, boost::none, 6);
-  }
-  return np;
-}
-
-caffe::NetParameter CreateCriticNet(int state_size) {
-  caffe::NetParameter np;
-  np.set_name("Critic");
-  np.set_force_backward(true);
-  MemoryDataLayer(np, state_input_layer_name, {states_blob_name,"dummy1"},
-                  boost::none, {kMinibatchSize, kStateInputCount, state_size, 1});
-  MemoryDataLayer(np, action_input_layer_name,
-                  {actions_blob_name,"dummy2"},
-                  boost::none, {kMinibatchSize, kStateInputCount, kActionSize, 1});
-  MemoryDataLayer(np, action_params_input_layer_name,
-                  {action_params_blob_name,"dummy3"},
-                  boost::none, {kMinibatchSize, kStateInputCount, kActionParamSize, 1});
-  MemoryDataLayer(np, target_input_layer_name, {targets_blob_name,"dummy4"},
-                  boost::none, {kMinibatchSize, 1, 1, 1});
-  SilenceLayer(np, "silence", {"dummy1","dummy2","dummy3","dummy4"}, {}, boost::none);
-  ConcatLayer(np, "concat",
-              {states_blob_name,actions_blob_name,action_params_blob_name},
-              {"state_actions"}, boost::none, 2);
-  std::string tower_top = Tower(np, "", "state_actions", {1024, 512, 256, 128});
-  IPLayer(np, q_values_layer_name, {tower_top}, {q_values_blob_name}, boost::none, 1);
-  EuclideanLossLayer(np, "loss", {q_values_blob_name, targets_blob_name},
-                     {loss_blob_name}, boost::none);
-  return np;
-}
+//caffe::NetParameter CreateActorNet(int state_size) {
+//  caffe::NetParameter np;
+//  np.set_name("Actor");
+//  np.set_force_backward(true);
+//  MemoryDataLayer(np, state_input_layer_name, {states_blob_name,"dummy1"},
+//                  boost::none, {minibatch_size_, kStateInputCount, state_size, 1});
+//  SilenceLayer(np, "silence", {"dummy1"}, {}, boost::none);
+//  if (FLAGS_use_skills) {
+//    // Define two skills and a network for selecting between them
+//    std::string sk1_tower = Tower(np, "sk1_", states_blob_name, {1024, 512, 256, 128});
+//    IPLayer(np, "sk1_output_layer", {sk1_tower}, {"sk1_out"}, boost::none,
+//            kActionSize + kActionParamSize);
+//    std::string sk2_tower = Tower(np, "sk2_", states_blob_name, {1024, 512, 256, 128});
+//    IPLayer(np, "sk2_output_layer", {sk2_tower}, {"sk2_out"}, boost::none,
+//            kActionSize + kActionParamSize);
+//    std::string beta_tower = Tower(np, "beta_", states_blob_name, {1024, 512, 256, 128});
+//    IPLayer(np, "beta_logits_layers", {beta_tower}, {"beta_logits"}, boost::none, 2);
+//    CHECK_GT(FLAGS_beta_softmax_temp, 0) << "Temperature must be in (0, 1]";
+//    CHECK_LE(FLAGS_beta_softmax_temp, 1) << "Temperature must be in (0, 1]";
+//    float temperature = 1.0 / FLAGS_beta_softmax_temp;
+//    DummyDataLayer(np, "dummy_temp", {"temperature"}, boost::none, {{32,2}}, {temperature});
+//    EltwiseLayer(np, "eltwise_temp_layer", {"beta_logits", "temperature"}, {"temp_logits"},
+//                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
+//    SoftmaxLayer(np, "beta_softmax_layer", {"temp_logits"}, {"beta_softmax"}, boost::none, 1);
+//    SliceLayer(np, "beta_slice_layer", {"beta_softmax"}, {"sk1_gain", "sk2_gain"}, boost::none,
+//               1, {1});
+//    // Tile the gains for input into eltwise prod
+//    TileLayer(np, "beta_sk0_tile", {"sk1_gain"}, {"sk1_tile"}, boost::none, 1,
+//              kActionSize + kActionParamSize);
+//    TileLayer(np, "beta_sk1_tile", {"sk2_gain"}, {"sk2_tile"}, boost::none, 1,
+//              kActionSize + kActionParamSize);
+//    // Eltwise Layers
+//    EltwiseLayer(np, "eltwise_sk1_layer", {"sk1_out", "sk1_tile"}, {"sk1_weighted"},
+//                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
+//    EltwiseLayer(np, "eltwise_sk2_layer", {"sk2_out", "sk2_tile"}, {"sk2_weighted"},
+//                 boost::none, caffe::EltwiseParameter_EltwiseOp_PROD);
+//    EltwiseLayer(np, "eltwise_sum_layer", {"sk1_weighted", "sk2_weighted"}, {"weighted_output"},
+//                 boost::none, caffe::EltwiseParameter_EltwiseOp_SUM);
+//    // Slice into actions and params
+//    SliceLayer(np, "action_slice_layer", {"weighted_output"},
+//               {actions_blob_name, action_params_blob_name}, boost::none, 1, {kActionSize});
+//  } else {
+//    std::string tower_top = Tower(np, "", states_blob_name, {1024, 512, 256, 128});
+//    IPLayer(np, "action_layer", {tower_top}, {"actions"}, boost::none, 4);
+//    IPLayer(np, "actionpara_layer", {tower_top}, {"action_params"}, boost::none, 6);
+//  }
+//  return np;
+//}
+//
+//caffe::NetParameter CreateCriticNet(int state_size) {
+//  caffe::NetParameter np;
+//  np.set_name("Critic");
+//  np.set_force_backward(true);
+//  MemoryDataLayer(np, state_input_layer_name, {states_blob_name,"dummy1"},
+//                  boost::none, {minibatch_size_, kStateInputCount, state_size, 1});
+//  MemoryDataLayer(np, action_input_layer_name,
+//                  {actions_blob_name,"dummy2"},
+//                  boost::none, {minibatch_size_, kStateInputCount, kActionSize, 1});
+//  MemoryDataLayer(np, action_params_input_layer_name,
+//                  {action_params_blob_name,"dummy3"},
+//                  boost::none, {minibatch_size_, kStateInputCount, kActionParamSize, 1});
+//  MemoryDataLayer(np, target_input_layer_name, {targets_blob_name,"dummy4"},
+//                  boost::none, {minibatch_size_, 1, 1, 1});
+//  SilenceLayer(np, "silence", {"dummy1","dummy2","dummy3","dummy4"}, {}, boost::none);
+//  ConcatLayer(np, "concat",
+//              {states_blob_name,actions_blob_name,action_params_blob_name},
+//              {"state_actions"}, boost::none, 2);
+//  std::string tower_top = Tower(np, "", "state_actions", {1024, 512, 256, 128});
+//  IPLayer(np, q_values_layer_name, {tower_top}, {q_values_blob_name}, boost::none, 1);
+//  EuclideanLossLayer(np, "loss", {q_values_blob_name, targets_blob_name},
+//                     {loss_blob_name}, boost::none);
+//  return np;
+//}
 
 
 DQN::DQN(caffe::SolverParameter& actor_solver_param,
          caffe::SolverParameter& critic_solver_param,
-         std::string save_path, int state_size, int tid, int unum) :
+         std::string save_path,
+         int state_size,
+         int action_param_size,
+         int minibatch_size,
+         int replay_memory_capacity,
+         int memory_threshold,
+         float gamma) :
         actor_solver_param_(actor_solver_param),
         critic_solver_param_(critic_solver_param),
-        replay_memory_capacity_(FLAGS_memory),
-        gamma_(FLAGS_gamma),
+        replay_memory_capacity_(replay_memory_capacity),
+        gamma_(gamma),
         random_engine(),
         smoothed_critic_loss_(0),
         smoothed_actor_loss_(0),
         last_snapshot_iter_(0),
         save_path_(save_path),
         state_size_(state_size),
-        state_input_data_size_(kMinibatchSize * state_size * kStateInputCount),
-        tid_(tid),
-        unum_(unum) {
+        action_param_size_(action_param_size),
+        minibatch_size_(minibatch_size),
+        memory_threshold_(memory_threshold),
+        state_input_data_size_(minibatch_size * state_size),
+        action_param_input_data_size_(minibatch_size * action_param_size),
+        target_input_data_size_(minibatch_size) {
+  LOG(INFO) << "state size: " << state_size_;
+  LOG(INFO) << "action param size: " << action_param_size_;
+  LOG(INFO) << "minibatch size: " << minibatch_size_;
+  LOG(INFO) << "memory threshold: " << memory_threshold_;
   if (FLAGS_seed <= 0) {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     LOG(INFO) << "Seeding RNG to time (seed = " << seed << ")";
@@ -544,15 +557,15 @@ std::vector<int> DQN::SampleTransitionsFromMemory(int n) {
   return transitions;
 }
 
-std::vector<InputStates> DQN::SampleStatesFromMemory(int n) {
-  std::vector<InputStates> states_batch(n);
+std::vector<StateDataSp> DQN::SampleStatesFromMemory(int n) {
+  std::vector<StateDataSp> states_batch(n);
   std::vector<int> transitions = SampleTransitionsFromMemory(n);
   for (int i = 0; i < n; ++i) {
     const auto& transition = replay_memory_[transitions[i]];
-    InputStates last_states;
-    for (int j = 0; j < kStateInputCount; ++j) {
-      last_states[j] = std::get<0>(transition)[j];
-    }
+    StateDataSp last_states = std::get<0>(transition);
+    //for (int j = 0; j < kStateInputCount; ++j) {
+    //  last_states[j] = std::get<0>(transition)[j];
+    //}
     states_batch[i] = last_states;
   }
   return states_batch;
@@ -669,25 +682,25 @@ void DQN::Initialize() {
 #endif
   // Check that nets have the necessary layers and blobs
   HasBlobSize(*actor_net_, states_blob_name,
-              {kMinibatchSize, kStateInputCount, state_size_, 1});
-  HasBlobSize(*actor_net_, actions_blob_name,
-              {kMinibatchSize, kActionSize});
+              {minibatch_size_, 1, state_size_, 1});
+  //HasBlobSize(*actor_net_, actions_blob_name,
+  //            {minibatch_size_, kActionSize});
   HasBlobSize(*actor_net_, action_params_blob_name,
-              {kMinibatchSize, kActionParamSize});
+              {minibatch_size_, action_param_size_});
   HasBlobSize(*critic_net_, states_blob_name,
-              {kMinibatchSize, kStateInputCount, state_size_, 1});
-  HasBlobSize(*critic_net_, actions_blob_name,
-              {kMinibatchSize, 1, kActionSize, 1});
+              {minibatch_size_, 1, state_size_, 1});
+  //HasBlobSize(*critic_net_, actions_blob_name,
+  //            {minibatch_size_, 1, kActionSize, 1});
   HasBlobSize(*critic_net_, action_params_blob_name,
-              {kMinibatchSize, 1, kActionParamSize, 1});
+              {minibatch_size_, 1, action_param_size_, 1});
   HasBlobSize(*critic_net_, targets_blob_name,
-              {kMinibatchSize, 1, 1, 1});
+              {minibatch_size_, 1, 1, 1});
   HasBlobSize(*critic_net_, q_values_blob_name,
-              {kMinibatchSize, 1});
+              {minibatch_size_, 1});
   // HasBlobSize(*critic_net_, loss_blob_name, {1});
   CHECK(actor_net_->has_layer(state_input_layer_name));
   CHECK(critic_net_->has_layer(state_input_layer_name));
-  CHECK(critic_net_->has_layer(action_input_layer_name));
+  //CHECK(critic_net_->has_layer(action_input_layer_name));
   CHECK(critic_net_->has_layer(action_params_input_layer_name));
   CHECK(critic_net_->has_layer(target_input_layer_name));
   CHECK(critic_net_->has_layer(q_values_layer_name));
@@ -697,40 +710,40 @@ void DQN::Initialize() {
 
 ActorOutput DQN::GetRandomActorOutput() {
   ActorOutput actor_output;
-  for (int i = 0; i < kActionSize; ++i) {
+  for (int i = 0; i < action_param_size_; ++i) {
     actor_output[i] = std::uniform_real_distribution<float>(-1.0,1.0)(random_engine);
   }
-  actor_output[kActionSize + 0] = // Dash Power
-      std::uniform_real_distribution<float>(-100.0, 100.0)(random_engine);
-  actor_output[kActionSize + 1] = // Dash Angle
-      std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
-  actor_output[kActionSize + 2] = // Turn Angle
-      std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
-  actor_output[kActionSize + 3] = // Tackle Angle
-      std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
-  actor_output[kActionSize + 4] = // Kick Power
-      std::uniform_real_distribution<float>(0.0, 100.0)(random_engine);
-  actor_output[kActionSize + 5] = // Kick Angle
-      std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
+  //actor_output[kActionSize + 0] = // Dash Power
+  //    std::uniform_real_distribution<float>(-100.0, 100.0)(random_engine);
+  //actor_output[kActionSize + 1] = // Dash Angle
+  //    std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
+  //actor_output[kActionSize + 2] = // Turn Angle
+  //    std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
+  //actor_output[kActionSize + 3] = // Tackle Angle
+  //    std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
+  //actor_output[kActionSize + 4] = // Kick Power
+  //    std::uniform_real_distribution<float>(0.0, 100.0)(random_engine);
+  //actor_output[kActionSize + 5] = // Kick Angle
+  //    std::uniform_real_distribution<float>(-180.0, 180.0)(random_engine);
   return actor_output;
 }
 
-ActorOutput DQN::SelectAction(const InputStates& last_states, const double epsilon) {
-  return SelectActions(std::vector<InputStates>{{last_states}}, epsilon)[0];
+ActorOutput DQN::SelectAction(const StateDataSp& last_states, const double epsilon) {
+  return SelectActions(std::vector<StateDataSp>{{last_states}}, epsilon)[0];
 }
 
-float DQN::EvaluateAction(const InputStates& input_states,
+float DQN::EvaluateAction(const StateDataSp& input_states,
                           const ActorOutput& actor_output) {
   return CriticForward(*critic_net_,
-                       std::vector<InputStates>{{input_states}},
+                       std::vector<StateDataSp>{{input_states}},
                        std::vector<ActorOutput>{{actor_output}})[0];
 }
 
 std::vector<ActorOutput>
-DQN::SelectActions(const std::vector<InputStates>& states_batch,
+DQN::SelectActions(const std::vector<StateDataSp>& states_batch,
                    const double epsilon) {
   CHECK(epsilon >= 0.0 && epsilon <= 1.0);
-  CHECK_LE(states_batch.size(), kMinibatchSize);
+  CHECK_LE(states_batch.size(), minibatch_size_);
   if (std::uniform_real_distribution<double>(0.0, 1.0)(random_engine) < epsilon) {
     // Select randomly
     std::vector<ActorOutput> actor_outputs(states_batch.size());
@@ -745,43 +758,46 @@ DQN::SelectActions(const std::vector<InputStates>& states_batch,
 }
 
 ActorOutput DQN::SelectActionGreedily(caffe::Net<float>& actor,
-                                      const InputStates& last_states) {
+                                      const StateDataSp& last_states) {
   return SelectActionGreedily(
-      actor, std::vector<InputStates>{{last_states}}).front();
+      actor, std::vector<StateDataSp>{{last_states}}).front();
 }
 
 std::vector<ActorOutput>
 DQN::SelectActionGreedily(caffe::Net<float>& actor,
-                          const std::vector<InputStates>& states_batch) {
+                          const std::vector<StateDataSp>& states_batch) {
   DLOG(INFO) << "  [Forward] Actor";
-  CHECK(actor.has_blob(actions_blob_name));
+  //CHECK(actor.has_blob(actions_blob_name));
   CHECK(actor.has_blob(action_params_blob_name));
-  CHECK_LE(states_batch.size(), kMinibatchSize);
+  CHECK_LE(states_batch.size(), minibatch_size_);
   std::vector<float> states_input(state_input_data_size_, 0.0f);
   const auto states_blob = actor.blob_by_name(states_blob_name);
   for (int n = 0; n < states_batch.size(); ++n) {
-    for (int c = 0; c < kStateInputCount; ++c) {
-      const auto& state_data = states_batch[n][c];
-      std::copy(state_data->begin(), state_data->end(),
-                states_input.begin() + states_blob->offset(n,c,0,0));
-    }
+    //for (int c = 0; c < kStateInputCount; ++c) {
+      const auto& state_data = states_batch[n];//[c];
+  std::copy(state_data->begin(), state_data->end(),
+            states_input.begin() + states_blob->offset(n,0,0,0));
+    //}
   }
-  InputDataIntoLayers(actor, states_input.data(), NULL, NULL, NULL, NULL);
+  InputDataIntoLayers(actor, states_input.data(), NULL, NULL);//, NULL);//, NULL);
   actor.ForwardPrefilled(nullptr);
-  if (FLAGS_use_skills) {
-    VLOG(1) << "Beta: " << actor.blob_by_name("beta_softmax")->data_at(0,0,0,0) << ", "
-            << actor.blob_by_name("beta_softmax")->data_at(0,1,0,0);
-  }
+  //if (FLAGS_use_skills) {
+  //  VLOG(1) << "Beta: " << actor.blob_by_name("beta_softmax")->data_at(0,0,0,0) << ", "
+  //          << actor.blob_by_name("beta_softmax")->data_at(0,1,0,0);
+  //}
   std::vector<ActorOutput> actor_outputs(states_batch.size());
-  const auto actions_blob = actor.blob_by_name(actions_blob_name);
+  //const auto actions_blob = actor.blob_by_name(actions_blob_name);
   const auto action_params_blob = actor.blob_by_name(action_params_blob_name);
+  //printf("trying to fetch results\n");
   for (int n = 0; n < states_batch.size(); ++n) {
-    ActorOutput actor_output;
-    for (int c = 0; c < kActionSize; ++c) {
-      actor_output[c] = actions_blob->data_at(n,c,0,0);
-    }
-    for (int c = 0; c < kActionParamSize; ++c) {
-      actor_output[kActionSize + c] = action_params_blob->data_at(n,c,0,0);
+      //printf("%d\n", n);
+    ActorOutput actor_output(action_param_size_);
+    //for (int c = 0; c < kActionSize; ++c) {
+    //  actor_output[c] = actions_blob->data_at(n,c,0,0);
+    //}
+    for (int c = 0; c < action_param_size_; ++c) {
+        //printf("c: %d\n", c);
+      actor_output[c] = action_params_blob->data_at(n,c,0,0);
     }
     actor_outputs[n] = actor_output;
   }
@@ -804,20 +820,20 @@ void DQN::AddTransitions(const std::vector<Transition>& transitions) {
 }
 
 void DQN::Update() {
-  if (memory_size() < FLAGS_memory_threshold) {
+  if (memory_size() < memory_threshold_) {
     return;
   }
   std::pair<float,float> res = UpdateActorCritic();
   float critic_loss = res.first;
   float avg_q = res.second;
   if (critic_iter() % FLAGS_loss_display_iter == 0) {
-    LOG(INFO) << "[Agent" << tid_ << "] Critic Iteration " << critic_iter()
+    LOG(INFO) << "[Agent] Critic Iteration " << critic_iter()
               << ", loss = " << smoothed_critic_loss_;
     smoothed_critic_loss_ = 0;
   }
   smoothed_critic_loss_ += critic_loss / float(FLAGS_loss_display_iter);
   if (actor_iter() % FLAGS_loss_display_iter == 0) {
-    LOG(INFO) << "[Agent" << tid_ << "] Actor Iteration " << actor_iter()
+    LOG(INFO) << "[Agent] Actor Iteration " << actor_iter()
               << ", avg_q_value = " << smoothed_actor_loss_;
     smoothed_actor_loss_ = 0;
   }
@@ -834,59 +850,59 @@ void DQN::Update() {
 
 std::pair<float,float> DQN::UpdateActorCritic() {
   CHECK(critic_net_->has_blob(states_blob_name));
-  CHECK(critic_net_->has_blob(actions_blob_name));
+  //CHECK(critic_net_->has_blob(actions_blob_name));
   CHECK(critic_net_->has_blob(action_params_blob_name));
   CHECK(critic_net_->has_blob(targets_blob_name));
   CHECK(critic_net_->has_blob(loss_blob_name));
   const auto actor_states_blob = actor_net_->blob_by_name(states_blob_name);
-  const auto actor_actions_blob = actor_net_->blob_by_name(actions_blob_name);
+  //const auto actor_actions_blob = actor_net_->blob_by_name(actions_blob_name);
   const auto actor_action_params_blob = actor_net_->
       blob_by_name(action_params_blob_name);
   const auto critic_states_blob = critic_net_->blob_by_name(states_blob_name);
-  const auto critic_action_blob = critic_net_->blob_by_name(actions_blob_name);
+  //const auto critic_action_blob = critic_net_->blob_by_name(actions_blob_name);
   const auto critic_action_params_blob =
       critic_net_->blob_by_name(action_params_blob_name);
   const auto target_blob = critic_net_->blob_by_name(targets_blob_name);
   const auto q_values_blob = critic_net_->blob_by_name(q_values_blob_name);
   const auto loss_blob = critic_net_->blob_by_name(loss_blob_name);
   // Collect a batch of next-states used to generate target_q_values
-  std::vector<int> transitions = SampleTransitionsFromMemory(kMinibatchSize);
-  std::vector<InputStates> states_batch(kMinibatchSize);
-  std::vector<ActorOutput> actions_batch(kMinibatchSize);
-  std::vector<float> rewards_batch(kMinibatchSize);
-  std::vector<bool> terminal(kMinibatchSize);
-  std::vector<InputStates> next_states_batch;
-  next_states_batch.reserve(kMinibatchSize);
+  std::vector<int> transitions = SampleTransitionsFromMemory(minibatch_size_);
+  std::vector<StateDataSp> states_batch(minibatch_size_);
+  std::vector<ActorOutput> actions_batch(minibatch_size_);
+  std::vector<float> rewards_batch(minibatch_size_);
+  std::vector<bool> terminal(minibatch_size_);
+  std::vector<StateDataSp> next_states_batch;
+  next_states_batch.reserve(minibatch_size_);
   // Raw data used for input to networks
   std::vector<float> states_input(state_input_data_size_, 0.0f);
-  std::vector<float> action_input(kActionInputDataSize, 0.0f);
-  std::vector<float> action_params_input(kActionParamsInputDataSize, 0.0f);
-  std::vector<float> target_input(kTargetInputDataSize, 0.0f);
-  for (int n = 0; n < kMinibatchSize; ++n) {
+  //std::vector<float> action_input(kActionInputDataSize, 0.0f);
+  std::vector<float> action_params_input(action_param_input_data_size_, 0.0f);
+  std::vector<float> target_input(target_input_data_size_, 0.0f);
+  for (int n = 0; n < minibatch_size_; ++n) {
     const auto& transition = replay_memory_[transitions[n]];
-    InputStates last_states;
-    for (int c = 0; c < kStateInputCount; ++c) {
-      const auto& state_data = std::get<0>(transition)[c];
-      std::copy(state_data->begin(), state_data->end(),
-                states_input.begin() + critic_states_blob->offset(n,c,0,0));
-      last_states[c] = state_data;
-    }
+    StateDataSp last_states;
+    //for (int c = 0; c < kStateInputCount; ++c) {
+    const auto& state_data = std::get<0>(transition);//[c];
+    std::copy(state_data->begin(), state_data->end(),
+              states_input.begin() + critic_states_blob->offset(n,0,0,0));
+    last_states = state_data;
+    //}
     states_batch[n] = last_states;
     const ActorOutput& actor_output = std::get<1>(transition);
-    std::copy(actor_output.begin(), actor_output.begin() + kActionSize,
-              action_input.begin() + critic_action_blob->offset(n,0,0,0));
-    std::copy(actor_output.begin() + kActionSize, actor_output.end(),
+    std::copy(actor_output.begin(), actor_output.end(),
               action_params_input.begin() + critic_action_params_blob->offset(n,0,0,0));
+    //std::copy(actor_output.begin() + kActionSize, actor_output.end(),
+    //          action_params_input.begin() + critic_action_params_blob->offset(n,0,0,0));
     actions_batch[n] = actor_output;
     const float reward = std::get<2>(transition);
     rewards_batch[n] = reward;
     terminal[n] = !std::get<3>(transition);
     if (!terminal[n]) {
-      InputStates next_states;
-      for (int i = 0; i < kStateInputCount - 1; ++i) {
-        next_states[i] = std::get<0>(transition)[i + 1];
-      }
-      next_states[kStateInputCount-1] = std::get<3>(transition).get();
+      StateDataSp next_states = std::get<3>(transition).get();
+      //for (int i = 0; i < kStateInputCount - 1; ++i) {
+      //  next_states[i] = std::get<0>(transition)[i + 1];
+      //}
+      //next_states[kStateInputCount-1] = std::get<3>(transition).get();
       next_states_batch.push_back(next_states);
     }
   }
@@ -895,14 +911,14 @@ std::pair<float,float> DQN::UpdateActorCritic() {
       CriticForwardThroughActor(
           *critic_target_net_, *actor_target_net_, next_states_batch);
   int target_value_idx = 0;
-  for (int n = 0; n < kMinibatchSize; ++n) {
+  for (int n = 0; n < minibatch_size_; ++n) {
     float target = terminal[n] ? rewards_batch[n] :
         rewards_batch[n] + gamma_ * target_q_values[target_value_idx++];
     CHECK(std::isfinite(target)) << "Target not finite!";
     target_input[target_blob->offset(n,0,0,0)] = target;
   }
-  InputDataIntoLayers(*critic_net_, states_input.data(), action_input.data(),
-                      action_params_input.data(), target_input.data(), NULL);
+  InputDataIntoLayers(*critic_net_, states_input.data(), //action_input.data(),
+                      action_params_input.data(), target_input.data());//, NULL);
   DLOG(INFO) << " [Step] Critic";
   critic_solver_->Step(1);
   float critic_loss = loss_blob->data_at(0,0,0,0);
@@ -912,44 +928,44 @@ std::pair<float,float> DQN::UpdateActorCritic() {
   ZeroGradParameters(*actor_net_);
   std::vector<ActorOutput> actor_output_batch =
       SelectActionGreedily(*actor_net_, states_batch);
-  DLOG(INFO) << "ActorOutput:  " << PrintActorOutput(actor_output_batch[0]);
+  //DLOG(INFO) << "ActorOutput:  " << PrintActorOutput(actor_output_batch[0]);
   std::vector<float> q_values =
       CriticForward(*critic_net_, states_batch, actor_output_batch);
   float avg_q = std::accumulate(q_values.begin(), q_values.end(), 0.0) /
       float(q_values.size());
   // Set the critic diff and run backward
   float* q_values_diff = q_values_blob->mutable_cpu_diff();
-  for (int n = 0; n < kMinibatchSize; n++) {
+  for (int n = 0; n < minibatch_size_; n++) {
     q_values_diff[q_values_blob->offset(n,0,0,0)] = -1.0;
   }
   DLOG(INFO) << " [Backwards] " << critic_net_->name();
   critic_net_->BackwardFrom(GetLayerIndex(*critic_net_, q_values_layer_name));
-  float* action_diff = critic_action_blob->mutable_cpu_diff();
+  //float* action_diff = critic_action_blob->mutable_cpu_diff();
   float* param_diff = critic_action_params_blob->mutable_cpu_diff();
-  DLOG(INFO) << "Diff: " << PrintActorOutput(action_diff, param_diff);
-  for (int n = 0; n < kMinibatchSize; ++n) {
-    for (int h = 0; h < kActionSize; ++h) {
-      int offset = critic_action_blob->offset(n,0,h,0);
-      float diff = action_diff[offset];
-      float output = actor_output_batch[n][h];
-      float min = -1.0; float max = 1.0;
-      if (diff < 0) {
-        diff *= (max - output) / (max - min);
-      } else if (diff > 0) {
-        diff *= (output - min) / (max - min);
-      }
-      action_diff[offset] = diff;
-    }
-    for (int h = 0; h < kActionParamSize; ++h) {
+  //DLOG(INFO) << "Diff: " << PrintActorOutput(param_diff);
+  for (int n = 0; n < minibatch_size_; ++n) {
+    //for (int h = 0; h < kActionSize; ++h) {
+    //  int offset = critic_action_blob->offset(n,0,h,0);
+    //  float diff = action_diff[offset];
+    //  float output = actor_output_batch[n][h];
+    //  float min = -1.0; float max = 1.0;
+    //  if (diff < 0) {
+    //    diff *= (max - output) / (max - min);
+    //  } else if (diff > 0) {
+    //    diff *= (output - min) / (max - min);
+    //  }
+    //  action_diff[offset] = diff;
+    //}
+    for (int h = 0; h < action_param_size_; ++h) {
       int offset = critic_action_params_blob->offset(n,0,h,0);
       float diff = param_diff[offset];
-      float output = actor_output_batch[n][h+kActionSize];
-      float min, max;
-      if (h == 0 || h == 4) {
-        min = 0; max = 100;
-      } else if (h == 1 || h == 2 || h == 3 || h == 5) {
-        min = -180; max = 180;
-      }
+      float output = actor_output_batch[n][h];
+      float min=-1, max=1;
+      //if (h == 0 || h == 4) {
+      //  min = 0; max = 100;
+      //} else if (h == 1 || h == 2 || h == 3 || h == 5) {
+      //  min = -180; max = 180;
+      //}
       if (diff < 0) {
         diff *= (max - output) / (max - min);
       } else if (diff > 0) {
@@ -958,13 +974,13 @@ std::pair<float,float> DQN::UpdateActorCritic() {
       param_diff[offset] = diff;
     }
   }
-  DLOG(INFO) << "Diff2 " << PrintActorOutput(action_diff, param_diff);
+  //DLOG(INFO) << "Diff2 " << PrintActorOutput(param_diff);
   // Transfer input-level diffs from Critic to Actor
-  actor_actions_blob->ShareDiff(*critic_action_blob);
+  //actor_actions_blob->ShareDiff(*critic_action_blob);
   actor_action_params_blob->ShareDiff(*critic_action_params_blob);
   DLOG(INFO) << " [Backwards] " << actor_net_->name();
   actor_net_->BackwardFrom(GetLayerIndex(
-      *actor_net_, FLAGS_use_skills ? "action_slice_layer" : "actionpara_layer"));
+      *actor_net_, "actionpara_layer"));
   actor_solver_->ApplyUpdate();
   actor_solver_->set_iter(actor_solver_->iter() + 1);
   // Soft update the target networks
@@ -977,43 +993,43 @@ std::pair<float,float> DQN::UpdateActorCritic() {
 
 std::vector<float> DQN::CriticForwardThroughActor(
     caffe::Net<float>& critic, caffe::Net<float>& actor,
-    const std::vector<InputStates>& states_batch) {
+    const std::vector<StateDataSp>& states_batch) {
   DLOG(INFO) << " [Forward] " << critic.name() << " Through " << actor_net_->name();
   return CriticForward(critic, states_batch,
                        SelectActionGreedily(actor, states_batch));
 }
 
 std::vector<float> DQN::CriticForward(caffe::Net<float>& critic,
-                                      const std::vector<InputStates>& states_batch,
+                                      const std::vector<StateDataSp>& states_batch,
                                       const std::vector<ActorOutput>& action_batch) {
   DLOG(INFO) << "  [Forward] " << critic.name();
   CHECK(critic.has_blob(states_blob_name));
-  CHECK(critic.has_blob(actions_blob_name));
+  //CHECK(critic.has_blob(actions_blob_name));
   CHECK(critic.has_blob(action_params_blob_name));
   CHECK(critic.has_blob(q_values_blob_name));
-  CHECK_LE(states_batch.size(), kMinibatchSize);
+  CHECK_LE(states_batch.size(), minibatch_size_);
   CHECK_EQ(states_batch.size(), action_batch.size());
   const auto states_blob = critic.blob_by_name(states_blob_name);
-  const auto actions_blob = critic.blob_by_name(actions_blob_name);
+  //const auto actions_blob = critic.blob_by_name(actions_blob_name);
   const auto action_params_blob = critic.blob_by_name(action_params_blob_name);
   std::vector<float> states_input(state_input_data_size_, 0.0f);
-  std::vector<float> action_input(kActionInputDataSize, 0.0f);
-  std::vector<float> action_params_input(kActionParamsInputDataSize, 0.0f);
-  std::vector<float> target_input(kTargetInputDataSize, 0.0f);
+  //std::vector<float> action_input(kActionInputDataSize, 0.0f);
+  std::vector<float> action_params_input(action_param_input_data_size_, 0.0f);
+  std::vector<float> target_input(target_input_data_size_, 0.0f);
   for (int n = 0; n < states_batch.size(); ++n) {
-    for (int c = 0; c < kStateInputCount; ++c) {
-      const auto& state_data = states_batch[n][c];
-      std::copy(state_data->begin(), state_data->end(),
-                states_input.begin() + states_blob->offset(n,c,0,0));
-    }
+    //for (int c = 0; c < kStateInputCount; ++c) {
+    const auto& state_data = states_batch[n];
+    std::copy(state_data->begin(), state_data->end(),
+              states_input.begin() + states_blob->offset(n,0,0,0));
+    //}
     const ActorOutput& actor_output = action_batch[n];
-    std::copy(actor_output.begin(), actor_output.begin() + kActionSize,
-              action_input.begin() + actions_blob->offset(n,0,0,0));
-    std::copy(actor_output.begin() + kActionSize, actor_output.end(),
+    //std::copy(actor_output.begin(), actor_output.begin() + kActionSize,
+    //          action_input.begin() + actions_blob->offset(n,0,0,0));
+    std::copy(actor_output.begin(), actor_output.end(),
               action_params_input.begin() + action_params_blob->offset(n,0,0,0));
   }
-  InputDataIntoLayers(critic, states_input.data(), action_input.data(),
-                      action_params_input.data(), target_input.data(), NULL);
+  InputDataIntoLayers(critic, states_input.data(),// action_input.data(),
+                      action_params_input.data(), target_input.data());
   critic.ForwardPrefilled(nullptr);
   const auto q_values_blob = critic.blob_by_name(q_values_blob_name);
   std::vector<float> q_values(states_batch.size());
@@ -1053,10 +1069,8 @@ void DQN::SoftUpdateNet(NetSp& net_from, NetSp& net_to, float tau) {
 
 void DQN::InputDataIntoLayers(caffe::Net<float>& net,
                               float* states_input,
-                              float* actions_input,
                               float* action_params_input,
-                              float* target_input,
-                              float* filter_input) {
+                              float* target_input) {
   if (states_input != NULL) {
     const auto state_input_layer =
         boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
@@ -1065,14 +1079,14 @@ void DQN::InputDataIntoLayers(caffe::Net<float>& net,
     state_input_layer->Reset(states_input, states_input,
                              state_input_layer->batch_size());
   }
-  if (actions_input != NULL) {
-    const auto action_input_layer =
-        boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
-            net.layer_by_name(action_input_layer_name));
-    CHECK(action_input_layer);
-    action_input_layer->Reset(actions_input, actions_input,
-                              action_input_layer->batch_size());
-  }
+  //if (actions_input != NULL) {
+  //  const auto action_input_layer =
+  //      boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
+  //          net.layer_by_name(action_input_layer_name));
+  //  CHECK(action_input_layer);
+  //  action_input_layer->Reset(actions_input, actions_input,
+  //                            action_input_layer->batch_size());
+  //}
   if (action_params_input != NULL) {
     const auto action_params_input_layer =
         boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
@@ -1089,14 +1103,14 @@ void DQN::InputDataIntoLayers(caffe::Net<float>& net,
     target_input_layer->Reset(target_input, target_input,
                               target_input_layer->batch_size());
   }
-  if (filter_input != NULL) {
-    const auto filter_input_layer =
-        boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
-            net.layer_by_name(filter_input_layer_name));
-    CHECK(filter_input_layer);
-    filter_input_layer->Reset(filter_input, filter_input,
-                              filter_input_layer->batch_size());
-  }
+  //if (filter_input != NULL) {
+  //  const auto filter_input_layer =
+  //      boost::dynamic_pointer_cast<caffe::MemoryDataLayer<float>>(
+  //          net.layer_by_name(filter_input_layer_name));
+  //  CHECK(filter_input_layer);
+  //  filter_input_layer->Reset(filter_input, filter_input,
+  //                            filter_input_layer->batch_size());
+  //}
 }
 
 void DQN::SnapshotReplayMemory(const std::string& filename) {
@@ -1110,14 +1124,14 @@ void DQN::SnapshotReplayMemory(const std::string& filename) {
   int episodes = 0;
   bool terminal = true;
   for (const Transition& t : replay_memory_) {
-    const InputStates& states = std::get<0>(t);
-    if (terminal) { // Save the history of states
-      for (int i = 0; i < kStateInputCount - 1; ++i) {
-        const StateDataSp state = states[i];
-        out.write((char*)state->data(), state_size_ * sizeof(float));
-      }
-    }
-    const StateDataSp curr_state = states.back();
+    const StateDataSp& states = std::get<0>(t);
+    //if (terminal) { // Save the history of states
+    //  for (int i = 0; i < kStateInputCount - 1; ++i) {
+    //    const StateDataSp state = states[i];
+    //    out.write((char*)state->data(), state_size_ * sizeof(float));
+    //  }
+    //}
+    const StateDataSp curr_state = states;//.back();
     out.write((char*)curr_state->data(), state_size_ * sizeof(float));
     const ActorOutput& actor_output = std::get<1>(t);
     out.write((char*)&actor_output, sizeof(ActorOutput));
@@ -1143,28 +1157,28 @@ void DQN::LoadReplayMemory(const std::string& filename) {
   int num_transitions;
   in.read((char*)&num_transitions, sizeof(int));
   replay_memory_.resize(num_transitions);
-  std::deque<dqn::StateDataSp> past_states;
+  //std::deque<dqn::StateDataSp> past_states;
   int episodes = 0;
   bool terminal = true;
   for (int i = 0; i < num_transitions; ++i) {
     Transition& t = replay_memory_[i];
-    if (terminal) {
-      past_states.clear();
-      for (int i = 0; i < kStateInputCount - 1; ++i) {
-        StateDataSp state = std::make_shared<StateData>(state_size_);
-        in.read((char*)state->data(), state_size_ * sizeof(float));
-        past_states.push_back(state);
-      }
-    }
-    StateDataSp state = std::make_shared<StateData>(state_size_);
+    //if (terminal) {
+    //  past_states.clear();
+    //  //for (int i = 0; i < kStateInputCount - 1; ++i) {
+    //  //  StateDataSp state = std::make_shared<StateData>(state_size_);
+    //  //  in.read((char*)state->data(), state_size_ * sizeof(float));
+    //  //  past_states.push_back(state);
+    //  //}
+    //}
+    //StateDataSp state = std::make_shared<StateData>(state_size_);
+    //past_states.push_back(state);
+    //while (past_states.size() > kStateInputCount) {
+    //  past_states.pop_front();
+    //}
+    //CHECK_EQ(past_states.size(), kStateInputCount);
+    StateDataSp& state = std::get<0>(t);
     in.read((char*)state->data(), state_size_ * sizeof(float));
-    past_states.push_back(state);
-    while (past_states.size() > kStateInputCount) {
-      past_states.pop_front();
-    }
-    CHECK_EQ(past_states.size(), kStateInputCount);
-    InputStates& states = std::get<0>(t);
-    std::copy(past_states.begin(), past_states.end(), states.begin());
+    //std::copy(past_states.begin(), past_states.end(), states.begin());
     in.read((char*)&std::get<1>(t), sizeof(ActorOutput));
     in.read((char*)&std::get<2>(t), sizeof(float));
     std::get<3>(t) = boost::none;

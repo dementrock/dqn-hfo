@@ -1,6 +1,8 @@
 #ifndef DQN_HPP_
 #define DQN_HPP_
 
+#define CPU_ONLY
+
 #include <memory>
 #include <random>
 #include <tuple>
@@ -15,38 +17,38 @@
 
 namespace dqn {
 
-constexpr auto kStateInputCount = 1;
-constexpr auto kMinibatchSize = 32;
-constexpr auto kActionSize = 4;
-constexpr auto kActionParamSize = 6;
+//constexpr auto kStateInputCount = 1;
+//constexpr auto kMinibatchSize = 32;
+//constexpr auto kActionSize = 1;
+//constexpr auto kActionParamSize = 1;
 
-constexpr auto kActionInputDataSize = kMinibatchSize * kActionSize;
-constexpr auto kActionParamsInputDataSize = kMinibatchSize * kActionParamSize;
-constexpr auto kTargetInputDataSize = kMinibatchSize * kActionSize;
-constexpr auto kFilterInputDataSize = kMinibatchSize * kActionSize;
+//constexpr auto kActionInputDataSize = kMinibatchSize * kActionSize;
+//constexpr auto kActionParamsInputDataSize = kMinibatchSize * kActionParamSize;
+//constexpr auto kTargetInputDataSize = kMinibatchSize * kActionSize;
+//constexpr auto kFilterInputDataSize = kMinibatchSize * kActionSize;
 
-using ActorOutput = std::array<float, kActionSize + kActionParamSize>;
+using ActorOutput = std::vector<float>;//array<float, kActionParamSize>;
 using StateData   = std::vector<float>;
 using StateDataSp = std::shared_ptr<StateData>;
-using InputStates = std::array<StateDataSp, kStateInputCount>;
-using Transition  = std::tuple<InputStates, ActorOutput,
+//using InputStates = State;//std::array<StateDataSp, kStateInputCount>;
+using Transition  = std::tuple<StateDataSp, ActorOutput,
                                float, boost::optional<StateDataSp>>;
 using SolverSp    = std::shared_ptr<caffe::Solver<float>>;
 using NetSp       = boost::shared_ptr<caffe::Net<float>>;
 
 // Layer Names
 constexpr auto state_input_layer_name         = "state_input_layer";
-constexpr auto action_input_layer_name        = "action_input_layer";
+//constexpr auto action_input_layer_name        = "action_input_layer";
 constexpr auto action_params_input_layer_name = "action_params_input_layer";
 constexpr auto target_input_layer_name        = "target_input_layer";
 constexpr auto filter_input_layer_name        = "filter_input_layer";
 constexpr auto q_values_layer_name            = "q_values_layer";
 // Blob names
 constexpr auto states_blob_name        = "states";
-constexpr auto actions_blob_name       = "actions";
+//constexpr auto actions_blob_name       = "actions";
 constexpr auto action_params_blob_name = "action_params";
 constexpr auto targets_blob_name       = "target";
-constexpr auto filter_blob_name        = "filter";
+//constexpr auto filter_blob_name        = "filter";
 constexpr auto q_values_blob_name      = "q_values";
 constexpr auto loss_blob_name          = "loss";
 
@@ -57,7 +59,13 @@ class DQN {
 public:
   DQN(caffe::SolverParameter& actor_solver_param,
       caffe::SolverParameter& critic_solver_param,
-      std::string save_path, int state_size, int tid, int unum);
+      std::string save_path,
+      int state_size,
+      int action_param_size,
+      int minibatch_size,
+      int replay_memory_capacity,
+      int memory_threshold,
+      float gamma);
   ~DQN();
 
   // Benchmark the speed of updates
@@ -80,17 +88,17 @@ public:
   ActorOutput GetRandomActorOutput();
 
   // Select an action using epsilon-greedy action selection.
-  ActorOutput SelectAction(const InputStates& input_states, double epsilon);
+  ActorOutput SelectAction(const StateDataSp& input_states, double epsilon);
 
   // Select a batch of actions using epsilon-greedy action selection.
-  std::vector<ActorOutput> SelectActions(const std::vector<InputStates>& states_batch,
+  std::vector<ActorOutput> SelectActions(const std::vector<StateDataSp>& states_batch,
                                          double epsilon);
 
   // Converts an ActorOutput into an action by samping over discrete actions
   Action SampleAction(const ActorOutput& actor_output);
 
   // Evaluate a state-action, returning the q-value.
-  float EvaluateAction(const InputStates& input_states, const ActorOutput& action);
+  float EvaluateAction(const StateDataSp& input_states, const ActorOutput& action);
 
   // Add a transition to replay memory
   void AddTransition(const Transition& transition);
@@ -114,8 +122,8 @@ public:
   int critic_iter() const { return critic_solver_->iter(); }
   int actor_iter() const { return actor_solver_->iter(); }
   int state_size() const { return state_size_; }
+  int action_param_size() const { return action_param_size_; }
   const std::string& save_path() const { return save_path_; }
-  int unum() const { return unum_; }
 
 protected:
   // Initialize DQN. Called by the constructor
@@ -127,7 +135,7 @@ protected:
   // Randomly sample the replay memory n-times, returning transition indexes
   std::vector<int> SampleTransitionsFromMemory(int n);
   // Randomly sample the replay memory n-times returning input_states
-  std::vector<InputStates> SampleStatesFromMemory(int n);
+  std::vector<StateDataSp> SampleStatesFromMemory(int n);
 
   // Clone the network and store the result in clone_net_
   void CloneNet(NetSp& net_from, NetSp& net_to);
@@ -137,31 +145,30 @@ protected:
 
   // Given input states, use the actor network to select an action.
   ActorOutput SelectActionGreedily(caffe::Net<float>& actor,
-                                   const InputStates& last_states);
+                                   const StateDataSp& last_states);
 
   // Given a batch of input states, return a batch of selected actions.
   std::vector<ActorOutput> SelectActionGreedily(
       caffe::Net<float>& actor,
-      const std::vector<InputStates>& states_batch);
+      const std::vector<StateDataSp>& states_batch);
 
   // Runs forward on critic to produce q-values. Actions inferred by actor.
   std::vector<float> CriticForwardThroughActor(
       caffe::Net<float>& critic, caffe::Net<float>& actor,
-      const std::vector<InputStates>& states_batch);
+      const std::vector<StateDataSp>& states_batch);
 
   // Runs forward on critic to produce q-values.
   std::vector<float> CriticForward(caffe::Net<float>& critic,
-                                   const std::vector<InputStates>& states_batch,
+                                   const std::vector<StateDataSp>& states_batch,
                                    const std::vector<ActorOutput>& action_batch);
 
   // Input data into the State/Target/Filter layers of the given
   // net. This must be done before forward is called.
   void InputDataIntoLayers(caffe::Net<float>& net,
                            float* states_input,
-                           float* actions_input,
+                           //float* actions_input,
                            float* action_params_input,
-                           float* target_input,
-                           float* filter_input);
+                           float* target_input);
 
 protected:
   caffe::SolverParameter actor_solver_param_;
@@ -180,18 +187,23 @@ protected:
   int last_snapshot_iter_;
   std::string save_path_;
   const int state_size_; // Number of state features
+  const int action_param_size_; // Number of state features
   const int state_input_data_size_;
-  int tid_;
-  int unum_;
+  const int action_param_input_data_size_;
+  const int minibatch_size_;
+  const int target_input_data_size_;
+  const int memory_threshold_;
+  //int tid_;
+  //int unum_;
 };
 
-caffe::NetParameter CreateActorNet(int state_size);
-caffe::NetParameter CreateCriticNet(int state_size);
+//caffe::NetParameter CreateActorNet(int state_size);
+//caffe::NetParameter CreateCriticNet(int state_size);
 
 /**
  * Converts an ActorOutput into an action by maxing over discrete actions
  */
-Action GetAction(const ActorOutput& actor_output);
+//Action GetAction(const ActorOutput& actor_output);
 
 /**
  * Returns a vector of filenames matching a given regular expression.
@@ -223,7 +235,7 @@ void FindLatestSnapshot(const std::string& snapshot_prefix,
  */
 int FindHiScore(const std::string& snapshot_prefix);
 
-std::string PrintActorOutput(const ActorOutput& actor_output);
+//std::string PrintActorOutput(const ActorOutput& actor_output);
 
 } // namespace dqn
 
