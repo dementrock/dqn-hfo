@@ -8,12 +8,12 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-#include <HFO.hpp>
+//#include <HFO.hpp>
 #include <caffe/caffe.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/optional.hpp>
 #include <mutex>
-#include "hfo_game.hpp"
+//#include "hfo_game.hpp"
 
 namespace dqn {
 
@@ -95,7 +95,7 @@ public:
                                          double epsilon);
 
   // Converts an ActorOutput into an action by samping over discrete actions
-  Action SampleAction(const ActorOutput& actor_output);
+  //Action SampleAction(const ActorOutput& actor_output);
 
   // Evaluate a state-action, returning the q-value.
   float EvaluateAction(const StateDataSp& input_states, const ActorOutput& action);
@@ -124,6 +124,22 @@ public:
   int state_size() const { return state_size_; }
   int action_param_size() const { return action_param_size_; }
   const std::string& save_path() const { return save_path_; }
+
+  NetSp actor_net() {
+    return actor_net_;
+  }
+
+  NetSp critic_net() {
+    return critic_net_;
+  }
+
+  NetSp actor_target_net() {
+    return actor_target_net_;
+  }
+
+  NetSp critic_target_net() {
+    return critic_target_net_;
+  }
 
 protected:
   // Initialize DQN. Called by the constructor

@@ -24,3 +24,8 @@ dqn = DQN(
 print dqn.select_action([1,2,3,4])
 dqn.add_transition([1,2,3,4], [1], 1, [1,2,3,5])
 dqn.update()
+print dqn.actor_net
+dqn.actor_net.print_diagnostics()
+print dqn.critic_net
+print dqn.actor_target_net
+print dqn.critic_target_net

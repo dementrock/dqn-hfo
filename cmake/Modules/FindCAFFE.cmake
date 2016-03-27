@@ -15,6 +15,12 @@ set(CAFFE_ROOT_DIR "/opt/caffe")
 set(CAFFE_INCLUDE_DIR "/opt/caffe/include" "/opt/caffe/build/src" "/opt/caffe/src")
 set(CAFFE_LIBRARY "/opt/caffe/build/lib/libcaffe.so")
 
+#set(CAFFE_ROOT_DIR "/Users/dementrock/libs/caffe")
+#
+#set(CAFFE_INCLUDE_DIR "/Users/dementrock/libs/caffe/include" "/Users/dementrock/libs/caffe/build/src" "/Users/dementrock/libs/caffe/src")
+#set(CAFFE_LIBRARY "/Users/dementrock/libs/caffe/build/lib/libcaffe.so")
+
+
 # find_library(CAFFE_LIBRARY caffe
 #   PATHS ${CAFFE_ROOT_DIR}
 #   PATH_SUFFIXES

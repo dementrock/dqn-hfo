@@ -13,9 +13,13 @@ extern "C" {
   //}
   dqn::DQN *DQN_new(
           char* actor_solver_param_str,
+          int actor_solver_param_strlen,
           char* actor_net_param_str,
+          int actor_net_param_strlen,
           char* critic_solver_param_str,
+          int critic_solver_param_strlen,
           char* critic_net_param_str,
+          int critic_net_param_strlen,
           char* save_path,
           int state_size,
           int action_param_size,
@@ -23,12 +27,21 @@ extern "C" {
           int replay_memory_capacity,
           int memory_threshold,
           float gamma) {
+    std::string actor_solver_param_s(actor_solver_param_str, actor_solver_param_strlen);
+    std::string actor_net_param_s(actor_net_param_str, actor_net_param_strlen);
+    std::string critic_solver_param_s(critic_solver_param_str, critic_solver_param_strlen);
+    std::string critic_net_param_s(critic_net_param_str, critic_net_param_strlen);
     caffe::SolverParameter actor_solver_param;
-    actor_solver_param.ParseFromString(actor_solver_param_str);
-    actor_solver_param.mutable_net_param()->ParseFromString(actor_net_param_str);
+    actor_solver_param.ParseFromString(actor_solver_param_s);
+    //std::cout << "here!" << std::endl;
+    //std::cout << actor_solver_param_s << std::endl;
+    //std::cout << actor_solver_param.solver_type() << std::endl;
+
+    actor_solver_param.mutable_net_param()->ParseFromString(actor_net_param_s);
     caffe::SolverParameter critic_solver_param;
-    critic_solver_param.ParseFromString(critic_solver_param_str);
-    critic_solver_param.mutable_net_param()->ParseFromString(critic_net_param_str);
+    critic_solver_param.ParseFromString(critic_solver_param_s);
+    critic_solver_param.mutable_net_param()->ParseFromString(critic_net_param_s);
+    //std::cout << actor_solver_param.lr_policy() << std::endl;
     std::string save_path_str(save_path);
     return new dqn::DQN(
         actor_solver_param,
@@ -75,6 +88,35 @@ extern "C" {
       //printf("got output! copying...\n");
       std::copy(output.begin(), output.end(), action_output);
       //printf("copied!\n");
+  }
+
+  caffe::Net<float>* DQN_actor_net(dqn::DQN* dqn) {
+    return &(*dqn->actor_net());
+  }
+
+  caffe::Net<float>* DQN_critic_net(dqn::DQN* dqn) {
+    return &(*dqn->critic_net());
+  }
+
+  caffe::Net<float>* DQN_actor_target_net(dqn::DQN* dqn) {
+    return &(*dqn->actor_target_net());
+  }
+
+  caffe::Net<float>* DQN_critic_target_net(dqn::DQN* dqn) {
+    return &(*dqn->critic_target_net());
+  }
+
+  void Net_print_diagnostics(caffe::Net<float>* net) {
+    const auto& params = net->learnable_params();
+    float sqsum = 0;
+    for (int i = 0; i < params.size(); ++i) {
+      int count = params[i]->count();
+      for (int j = 0; j < count; ++j) {
+        float val = params[i]->cpu_data()[j];
+        sqsum += val * val;
+      }
+    }
+    std::cout << "sqsum: " << sqsum << std::endl;
   }
 
 }

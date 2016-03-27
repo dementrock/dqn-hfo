@@ -16,7 +16,7 @@
 
 namespace dqn {
 
-using namespace hfo;
+//using namespace hfo;
 
 DEFINE_int32(seed, 0, "Seed the RNG. Default: time");
 DEFINE_double(tau, .001, "Step size for soft updates.");
@@ -160,23 +160,23 @@ int FindHiScore(const std::string& snapshot_prefix) {
 
 // Get the offset for a param of a given action. Returns -1 if a
 // non-existant offset is requested.
-int GetParamOffset(const action_t action, const int arg_num = 0) {
-  if (arg_num < 0 || arg_num > 1) {
-    return -1;
-  }
-  switch (action) {
-    case DASH:
-      return arg_num;
-    case TURN:
-      return arg_num == 0 ? 2 : -1;
-    case TACKLE:
-      return arg_num == 0 ? 3 : -1;
-    case KICK:
-      return 4 + arg_num;
-    default:
-      LOG(FATAL) << "Unrecognized action: " << action;
-  }
-}
+//int GetParamOffset(const action_t action, const int arg_num = 0) {
+//  if (arg_num < 0 || arg_num > 1) {
+//    return -1;
+//  }
+//  switch (action) {
+//    case DASH:
+//      return arg_num;
+//    case TURN:
+//      return arg_num == 0 ? 2 : -1;
+//    case TACKLE:
+//      return arg_num == 0 ? 3 : -1;
+//    case KICK:
+//      return 4 + arg_num;
+//    default:
+//      LOG(FATAL) << "Unrecognized action: " << action;
+//  }
+//}
 
 //Action DQN::SampleAction(const ActorOutput& actor_output) {
 //  float dash_prob = std::max(0., actor_output[DASH] + 1.0);
@@ -842,10 +842,18 @@ void DQN::Update() {
       critic_iter() >= last_snapshot_iter_ + FLAGS_snapshot_freq;
   bool actor_needs_snapshot =
       actor_iter() >= last_snapshot_iter_ + FLAGS_snapshot_freq;
-  if (critic_needs_snapshot || actor_needs_snapshot) {
-    Snapshot();
-    last_snapshot_iter_ = max_iter();
+  //if (critic_needs_snapshot || actor_needs_snapshot) {
+  //  Snapshot();
+  //  last_snapshot_iter_ = max_iter();
+  //}
+}
+
+void print_sqsum(const float* arr, int count, std::string str) {
+  float sqsum = 0;
+  for (int i = 0; i < count; ++i) {
+    sqsum += arr[i] * arr[i];
   }
+  std::cout << str << " sqsum: " << sqsum << std::endl;
 }
 
 std::pair<float,float> DQN::UpdateActorCritic() {
@@ -911,6 +919,7 @@ std::pair<float,float> DQN::UpdateActorCritic() {
       CriticForwardThroughActor(
           *critic_target_net_, *actor_target_net_, next_states_batch);
   int target_value_idx = 0;
+  //print_sqsum(target_q_values.data(), target_q_values.size(), "target_q");
   for (int n = 0; n < minibatch_size_; ++n) {
     float target = terminal[n] ? rewards_batch[n] :
         rewards_batch[n] + gamma_ * target_q_values[target_value_idx++];
@@ -939,33 +948,16 @@ std::pair<float,float> DQN::UpdateActorCritic() {
     q_values_diff[q_values_blob->offset(n,0,0,0)] = -1.0;
   }
   DLOG(INFO) << " [Backwards] " << critic_net_->name();
+  //std::cout << "Layer index: " << GetLayerIndex(*critic_net_, q_values_layer_name) << std::endl;
   critic_net_->BackwardFrom(GetLayerIndex(*critic_net_, q_values_layer_name));
-  //float* action_diff = critic_action_blob->mutable_cpu_diff();
   float* param_diff = critic_action_params_blob->mutable_cpu_diff();
-  //DLOG(INFO) << "Diff: " << PrintActorOutput(param_diff);
+  //print_sqsum(param_diff, critic_action_params_blob->count(), "param_diff");
   for (int n = 0; n < minibatch_size_; ++n) {
-    //for (int h = 0; h < kActionSize; ++h) {
-    //  int offset = critic_action_blob->offset(n,0,h,0);
-    //  float diff = action_diff[offset];
-    //  float output = actor_output_batch[n][h];
-    //  float min = -1.0; float max = 1.0;
-    //  if (diff < 0) {
-    //    diff *= (max - output) / (max - min);
-    //  } else if (diff > 0) {
-    //    diff *= (output - min) / (max - min);
-    //  }
-    //  action_diff[offset] = diff;
-    //}
     for (int h = 0; h < action_param_size_; ++h) {
       int offset = critic_action_params_blob->offset(n,0,h,0);
       float diff = param_diff[offset];
       float output = actor_output_batch[n][h];
       float min=-1, max=1;
-      //if (h == 0 || h == 4) {
-      //  min = 0; max = 100;
-      //} else if (h == 1 || h == 2 || h == 3 || h == 5) {
-      //  min = -180; max = 180;
-      //}
       if (diff < 0) {
         diff *= (max - output) / (max - min);
       } else if (diff > 0) {
@@ -974,9 +966,6 @@ std::pair<float,float> DQN::UpdateActorCritic() {
       param_diff[offset] = diff;
     }
   }
-  //DLOG(INFO) << "Diff2 " << PrintActorOutput(param_diff);
-  // Transfer input-level diffs from Critic to Actor
-  //actor_actions_blob->ShareDiff(*critic_action_blob);
   actor_action_params_blob->ShareDiff(*critic_action_params_blob);
   DLOG(INFO) << " [Backwards] " << actor_net_->name();
   actor_net_->BackwardFrom(GetLayerIndex(
@@ -988,6 +977,7 @@ std::pair<float,float> DQN::UpdateActorCritic() {
     SoftUpdateNet(critic_net_, critic_target_net_, FLAGS_tau);
     SoftUpdateNet(actor_net_, actor_target_net_, FLAGS_tau);
   }
+  //std::cout << "finished" << std::endl;
   return std::make_pair(critic_loss, avg_q);
 }
 

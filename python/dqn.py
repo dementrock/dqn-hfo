@@ -14,11 +14,16 @@ lib = ctypes.cdll.LoadLibrary(
         "../build/libdqn-c-lib.so"
     )
 )
+
 lib.DQN_new.argtypes = [
     ctypes.c_char_p,
+    ctypes.c_int,
     ctypes.c_char_p,
+    ctypes.c_int,
     ctypes.c_char_p,
+    ctypes.c_int,
     ctypes.c_char_p,
+    ctypes.c_int,
     ctypes.c_char_p,
     ctypes.c_int,
     ctypes.c_int,
@@ -48,6 +53,29 @@ lib.DQN_AddTransition.returntype = None
 lib.DQN_Update.argtypes = [ctypes.c_void_p]
 lib.DQN_Update.returntype = None
 
+lib.DQN_actor_net.argtypes = [ctypes.c_void_p]
+lib.DQN_actor_net.returntype = ctypes.c_void_p
+
+lib.DQN_critic_net.argtypes = [ctypes.c_void_p]
+lib.DQN_critic_net.returntype = ctypes.c_void_p
+
+lib.DQN_actor_target_net.argtypes = [ctypes.c_void_p]
+lib.DQN_actor_target_net.returntype = ctypes.c_void_p
+
+lib.DQN_critic_target_net.argtypes = [ctypes.c_void_p]
+lib.DQN_critic_target_net.returntype = ctypes.c_void_p
+
+lib.Net_print_diagnostics.argtypes = [ctypes.c_void_p]
+lib.Net_print_diagnostics.returntype = None
+
+
+class Net(object):
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def print_diagnostics(self):
+        lib.Net_print_diagnostics(self.obj)
 
 
 class DQN(object):
@@ -75,6 +103,7 @@ class DQN(object):
             h2_size=actor_h2_size
         )
         critic_solver_param = new_solver(learning_rate=critic_learning_rate)
+        critic_solver_param.weight_decay = 0.01
         critic_net_param = new_critic_net_param(
             state_size=state_size,
             action_size=action_size,
@@ -84,9 +113,13 @@ class DQN(object):
         )
         obj = lib.DQN_new(
             actor_solver_param.SerializeToString(),
+            len(actor_solver_param.SerializeToString()),
             actor_net_param.SerializeToString(),
+            len(actor_net_param.SerializeToString()),
             critic_solver_param.SerializeToString(),
+            len(critic_solver_param.SerializeToString()),
             critic_net_param.SerializeToString(),
+            len(critic_net_param.SerializeToString()),
             save_path,
             state_size,
             action_size,
@@ -132,22 +165,38 @@ class DQN(object):
             next_state_pt
         )
 
+    @property
+    def actor_net(self):
+        return Net(lib.DQN_actor_net(self.obj))
+
+    @property
+    def critic_net(self):
+        return Net(lib.DQN_critic_net(self.obj))
+
+    @property
+    def actor_target_net(self):
+        return Net(lib.DQN_actor_target_net(self.obj))
+
+    @property
+    def critic_target_net(self):
+        return Net(lib.DQN_critic_target_net(self.obj))
+
 def new_solver(learning_rate):
-    return SolverParameter(
-        solver_type=SolverParameter.ADAM,
-        momentum=0.95,
-        base_lr=learning_rate,
-        lr_policy="step",
-        gamma=0.1,
-        stepsize=10000000,
-        max_iter=10000000,
-        display=0,
-        clip_gradients=10
-    )
+    param = SolverParameter()
+    param.solver_type = SolverParameter.ADAM
+    param.momentum = 0.95
+    param.base_lr = learning_rate
+    param.lr_policy = "step"
+    param.gamma = 0.1
+    param.stepsize = 10000000
+    param.max_iter = 10000000
+    param.display = 0
+    param.clip_gradients = 10
+    return param
 
 
 def new_actor_net_param(state_size, action_size, minibatch_size, h1_size, h2_size):
-    state_input = L.MemoryData(
+    state_input, _ = L.MemoryData(
         name="state_input_layer", 
         ntop=2,
         top_names=["states", "dummy1"],
@@ -156,17 +205,22 @@ def new_actor_net_param(state_size, action_size, minibatch_size, h1_size, h2_siz
         height=state_size,
         width=1,
     )
-    a1 = L.InnerProduct(state_input[0], num_output=h1_size, weight_filler=dict(type="gaussian", std=0.01))
-    h1 = L.ReLU(a1, negative_slope=0.01)
-    a2 = L.InnerProduct(h1, num_output=h2_size, weight_filler=dict(type="gaussian", std=0.01))
-    h2 = L.ReLU(a2, negative_slope=0.01)
-    a3 = L.InnerProduct(h2, num_output=action_size, weight_filler=dict(type="gaussian", std=0.01))
+    #state_input = L.BatchNorm(state_input)
+    a1 = L.InnerProduct(state_input, num_output=h1_size, weight_filler=dict(type="xavier"))
+    #a1 = L.BatchNorm(a1)
+    h1 = L.ReLU(a1)#, negative_slope=0.01)
+    a2 = L.InnerProduct(h1, num_output=h2_size, weight_filler=dict(type="xavier"))
+    #a2 = L.BatchNorm(a2)
+    h2 = L.ReLU(a2)#, negative_slope=0.01)
+    a3 = L.InnerProduct(h2, num_output=action_size, weight_filler=dict(type="uniform", min=-3e-3, max=3e-3))
+    #a3 = L.BatchNorm(a3)
     output = L.TanH(
         a3,
         name="actionpara_layer",
         top_name="action_params"
     )
     proto = output.to_proto()
+    proto.force_backward = True
     # proto.layer.extend(dummy_layer.to_proto().layer)
     return proto
 
@@ -181,6 +235,7 @@ def new_critic_net_param(state_size, action_size, minibatch_size, h1_size, h2_si
         height=state_size,
         width=1,
     )
+    #state_input_layer = L.BatchNorm(state_input_layer)
     action_params_input_layer, _ = L.MemoryData(
         name="action_params_input_layer",
         ntop=2,
@@ -189,6 +244,11 @@ def new_critic_net_param(state_size, action_size, minibatch_size, h1_size, h2_si
         channels=1,
         height=action_size,
         width=1,
+    )
+    #action_params_input_layer = L.BatchNorm(action_params_input_layer)
+    action_params_input_layer = L.Reshape(
+        action_params_input_layer,
+        reshape_param=dict(shape=dict(dim=[minibatch_size, action_size])),
     )
 
     target_input_layer, _ = L.MemoryData(
@@ -201,20 +261,24 @@ def new_critic_net_param(state_size, action_size, minibatch_size, h1_size, h2_si
         width=1,
     )
 
+    a1 = L.InnerProduct(state_input_layer, num_output=h1_size, weight_filler=dict(type="xavier"))
+    #a1 = L.BatchNorm(a1)
+    h1  = L.ReLU(a1)#, negative_slope=0.01)
+
     inputs = L.Concat(
-        state_input_layer, action_params_input_layer,
-        axis=2
+        h1, action_params_input_layer,
+        axis=1
     )
-    a1 = L.InnerProduct(inputs, num_output=h1_size, weight_filler=dict(type="gaussian", std=0.01))
-    h1  = L.ReLU(a1, negative_slope=0.01)
-    a2 = L.InnerProduct(h1, num_output=h2_size, weight_filler=dict(type="gaussian", std=0.01))
-    h2 = L.ReLU(a2, negative_slope=0.01)
+
+    a2 = L.InnerProduct(inputs, num_output=h2_size, weight_filler=dict(type="xavier"))
+    #a2 = L.BatchNorm(a2)
+    h2 = L.ReLU(a2)#, negative_slope=0.01)
     q_values_layer = L.InnerProduct(
         h2,
         name="q_values_layer",
         top_name="q_values",
         num_output=1,
-        weight_filler=dict(type="gaussian", std=0.01)
+        weight_filler=dict(type="uniform", min=-3e-3, max=3e-3)
     )
 
     loss_layer = L.EuclideanLoss(
@@ -224,4 +288,5 @@ def new_critic_net_param(state_size, action_size, minibatch_size, h1_size, h2_si
     )
 
     proto = loss_layer.to_proto()
+    proto.force_backward = True
     return proto
